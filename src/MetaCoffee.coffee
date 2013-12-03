@@ -199,6 +199,8 @@ comment = (content) ->
   }
 
 condition = (predicate, thenBranch, elseBranch) ->
+  thenBranch = thenBranch?() || nothing
+  elseBranch = elseBranch?() || nothing
   {
     predicate
     thenBranch
