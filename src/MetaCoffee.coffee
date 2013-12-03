@@ -81,7 +81,7 @@ call = (target, args...) ->
       else if args.length is 1 and args[0].call?
         target + wrap "(", ")", trail block args[0]()
       else
-        target + " " + list args...
+        target + " " + list args
   }
 
 block = map (content) -> "\n" + (indent 2, content.toString())
@@ -89,7 +89,7 @@ trail = map (content) -> content + "\n"
 lead = map (content) -> "\n" + content
 pad = map (content) -> " " + content + " "
 
-list = (items...) ->
+list = (items) ->
   {
     items
     empty: (all items, empty)
@@ -108,13 +108,13 @@ wrap = (start, end, content) ->
       start + content + end
   }
 
-tuple = (values...) ->
+tuple = (values) ->
   {
     values,
     empty: (all values, empty)
     complex: false
     toString: ->
-      (wrap "(", ")", list values...).toString()
+      (wrap "(", ")", list values).toString()
   }
 
 hash = (properties...) ->
@@ -125,12 +125,12 @@ hash = (properties...) ->
     toString: ->
       (wrap "{", "}",
         fold properties,
-          (complex) -> trail block sequence complex...
-          (simple) -> pad list simple...
+          (complex) -> trail block sequence complex
+          (simple) -> pad list simple
       ).toString()
   }
 
-array = (items...) ->
+array = (items) ->
   {
     items
     empty: (all items, empty)
@@ -141,8 +141,8 @@ array = (items...) ->
           ""
         else
           fold items,
-            (complex) -> trail block sequence complex...
-            (simple) -> pad list simple...
+            (complex) -> trail block sequence complex
+            (simple) -> pad list simple
       ).toString()
   }
 
@@ -155,7 +155,7 @@ lambda = (args..., body) ->
     complex: (complex body)
     toString: ->
       [
-        tuple args...
+        tuple args
         "->"
         do =>
           if @complex
@@ -165,7 +165,7 @@ lambda = (args..., body) ->
       ].filter((e) -> not empty e).join ' '
   }
 
-sequence = (statements...) ->
+sequence = (statements) ->
   {
     statements
     empty: (all statements, empty)
@@ -217,33 +217,37 @@ condition = (predicate, thenBranch, elseBranch) ->
       )
   }
 
-console.log sequence(
+console.log sequence([
   assign "foo", ->
     lambda "qux", "bar", ->
-      sequence(
+      sequence [
         property "onSuccess", lambda ->
-          sequence(
+          sequence [
             call "console.log", hash(
               property "pow", lambda -> "foobar"
             ), hash(
               property "a", "b"
             )
             call "new Foobar", ->
-              sequence(
-                lambda -> array(comment("stuff\ngoes here"))
+              sequence [
+                lambda ->
+                  array [
+                    comment("stuff\ngoes here")
+                  ]
                 lambda ->
                   property "foo", lambda -> "baah"
-              )
-            call "new Foobar", array(
+              ]
+            call "new Foobar", array [
               lambda -> comment("stuff goes here")
-            )
-          )
+            ]
+          ]
         property "onFailure", lambda ->
-          condition "was", sequence(
-            "woot"
-          )
-      )
-).toString()
+          condition "was",
+            -> sequence [
+              "woot"
+            ]
+      ]
+]).toString()
 
 module.exports = {
   sequence
